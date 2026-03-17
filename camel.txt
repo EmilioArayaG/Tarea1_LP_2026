@@ -1,0 +1,11 @@
+bool authenticateUser() {
+bool isValid = true;
+int attemptCount = 0;
+while (attemptCount < 3) {
+if (isValid == true) {
+return isValid;
+}
+}
+return isValid;
+}
+

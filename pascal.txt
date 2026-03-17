@@ -1,0 +1,5 @@
+void ProcessCorporateInvoice() {
+int TotalAmount = 5000;
+bool invoice_paid = false;
+}
+
