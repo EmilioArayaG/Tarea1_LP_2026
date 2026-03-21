@@ -212,6 +212,4 @@ def imprimir_reporte(estadisticas):
             for error in datos["errores_sintaxis"]:
                 print(error)
 
-    
-
 procesar_archivo()
