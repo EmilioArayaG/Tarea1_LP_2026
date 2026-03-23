@@ -23,15 +23,13 @@ nombre_generico = rf"(?:{letra}|{digito}|_)+"
 condicion = rf"(?:\(\s*{nombre_valido}\s*{operacion}\s*{valor}\s*\))"
 estructura_control = rf"(?:(?:if|while)\s+{condicion}\s*\{{)"
 cierre_bloque = r"\}"
-detector_funcion = rf"(?:{tipo_dato})\s+({nombre_valido})\s*\("
-detector_funcion_desconocido = rf"(?:{tipo_dato})\s+({nombre_generico})\s*\("
+detector_funcion = rf"(?:{tipo_dato})\s+(?:{nombre_valido})\s*\("
 declaracion_variable = rf"(?:{tipo_dato})\s+({nombre_valido})\s*(?:{operacion})\s*(?:{valor})\s*;"
 retorno = rf"(?:\s*return\s+{nombre_valido}\s*;)"
 comentario_one_line = rf"//\s*{palabra}"
 comentario_multi_line = rf"/\*\s*{palabra}\s*\*/"
 
-keyword_control = r"(?:if|while)"
-
+detector_funcion_desconocido = rf"(?:{tipo_dato})\s+({nombre_generico})\s*\("
 variable_sin_punto_coma = rf"^(?:{tipo_dato})\s+({nombre_valido})\s*(?:{operacion})\s*(?:{valor})\s*$"
 retorno_sin_punto_coma = rf"^\s*return\s+(?:{nombre_valido})\s*$"
 
@@ -58,7 +56,7 @@ def incializar_archivos():
     ***
     Parametro: None
     ***
-    Retorno: Diccionario de estadisticas
+    Retorno: Diccionario de estadisticas vacio
     ***
     Esta funcion crea los archivos de salida (snake.txt, camel.txt, pascal.txt y desconocido.txt)
     y crea un diccionario de estadisticas. 
@@ -92,47 +90,51 @@ def escribir_bloque(contexto_actual, bloque_actual):
 def evaluar_linea_interna(linea_limpia, contexto_actual, estadisticas):
     '''
     ***
-    Parametro 1: str
-    Parametro 2: str
-    Parametro 3 : dict
+    Parametro 1: linea_limpia: str
+    Parametro 2: contexto_actual: str
+    Parametro 3: estadisticas: dict
     ***
-    Retorno: none
+    Retorno: None
     ***
-    Esta funcion evalua una linea dentro de un bloque de funcion, busca las variables, errores de 
-    estilo y los errores de sintaxis. Tambien actualiza el diccionario de estadisticas con la informacion obtenida.
+    Evalua una linea dentro de un bloque de funcion buscando variables, errores de 
+    estilo y errores de sintaxis, actualizando el diccionario de estadisticas.
     '''
+
     for var_match in re.finditer(declaracion_variable, linea_limpia):
         nombre_variable = var_match.group(1)
         estadisticas[contexto_actual]["total_variables"] += 1
         estilo_variable = determinar_autor(nombre_variable).lower()
+        
         if estilo_variable != contexto_actual:
-            if contexto_actual == "snake":
-                estilo_impresion = "snake_case"
-            elif contexto_actual == "camel":
-                estilo_impresion = "camelCase"
-            elif contexto_actual == "pascal":
-                estilo_impresion = "PascalCase"
-            else:
-                estilo_impresion = "desconocido"
+            if contexto_actual == "snake": estilo_impresion = "snake_case"
+            elif contexto_actual == "camel": estilo_impresion = "camelCase"
+            elif contexto_actual == "pascal": estilo_impresion = "PascalCase"
+            else: estilo_impresion = "desconocido"
             mensaje_error = f"La variable '{nombre_variable}' no es {estilo_impresion}"
             estadisticas[contexto_actual]["errores_estilo"].append(mensaje_error)
 
     funcion_actual = estadisticas[contexto_actual]["funciones"][-1]
 
-    tiene_if_while = re.search(keyword_control, linea_limpia)
-    if tiene_if_while:
-        if not re.search(estructura_control, linea_limpia):
-            mensaje_error = f"Error en '{funcion_actual}': Estructura de control mal formada en la línea '{linea_limpia}'"
-            estadisticas[contexto_actual]["errores_sintaxis"].append(mensaje_error)
-    else:
-        match_var_rota = re.match(variable_sin_punto_coma, linea_limpia)
-        if match_var_rota:
-            estadisticas[contexto_actual]["total_variables"] += 1
-            mensaje_error = f"Error en '{funcion_actual}': Falta ';' en la línea '{linea_limpia}'"
-            estadisticas[contexto_actual]["errores_sintaxis"].append(mensaje_error)
-        elif re.match(retorno_sin_punto_coma, linea_limpia):
-            mensaje_error = f"Error en '{funcion_actual}': Falta ';' en la línea '{linea_limpia}'"
-            estadisticas[contexto_actual]["errores_sintaxis"].append(mensaje_error)
+    match_var_rota = re.match(variable_sin_punto_coma, linea_limpia)
+    if match_var_rota:
+        nombre_variable = match_var_rota.group(1)
+        estadisticas[contexto_actual]["total_variables"] += 1
+        
+        estilo_variable = determinar_autor(nombre_variable).lower()
+        if estilo_variable != contexto_actual:
+            if contexto_actual == "snake": estilo_impresion = "snake_case"
+            elif contexto_actual == "camel": estilo_impresion = "camelCase"
+            elif contexto_actual == "pascal": estilo_impresion = "PascalCase"
+            else: estilo_impresion = "desconocido"
+            mensaje_estilo = f"La variable '{nombre_variable}' no es {estilo_impresion}"
+            estadisticas[contexto_actual]["errores_estilo"].append(mensaje_estilo)
+
+        mensaje_error = f"Error en '{funcion_actual}': Falta ';' en la línea '{linea_limpia}'"
+        estadisticas[contexto_actual]["errores_sintaxis"].append(mensaje_error)
+        
+    elif re.match(retorno_sin_punto_coma, linea_limpia):
+        mensaje_error = f"Error en '{funcion_actual}': Falta ';' en la línea '{linea_limpia}'"
+        estadisticas[contexto_actual]["errores_sintaxis"].append(mensaje_error)
 def procesar_archivo():
     '''
     ***
