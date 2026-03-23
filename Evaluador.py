@@ -30,8 +30,8 @@ retorno = rf"(?:\s*return\s+{nombre_valido}\s*;)"
 comentario_one_line = rf"//\s*{palabra}"
 comentario_multi_line = rf"/\*\s*{palabra}\s*\*/"
 
-variable_sin_punto_coma = rf"^(?:{tipo_dato})\s+({nombre_valido})\s*(?:{operacion})\s*(?:{valor})\s*[^;]$"
-retorno_sin_punto_coma = rf"^\s*return\s+(?:{nombre_valido})\s*[^;]$"
+variable_sin_punto_coma = rf"^(?:{tipo_dato})\s+({nombre_valido})\s*(?:{operacion})\s*(?:{valor})\s*$"
+retorno_sin_punto_coma = rf"^\s*return\s+(?:{nombre_valido})\s*$"
 
 def determinar_autor(nombre_funcion):
     '''
