@@ -30,6 +30,8 @@ retorno = rf"(?:\s*return\s+{nombre_valido}\s*;)"
 comentario_one_line = rf"//\s*{palabra}"
 comentario_multi_line = rf"/\*\s*{palabra}\s*\*/"
 
+keyword_control = r"(?:if|while)"
+
 variable_sin_punto_coma = rf"^(?:{tipo_dato})\s+({nombre_valido})\s*(?:{operacion})\s*(?:{valor})\s*$"
 retorno_sin_punto_coma = rf"^\s*return\s+(?:{nombre_valido})\s*$"
 
@@ -116,15 +118,21 @@ def evaluar_linea_interna(linea_limpia, contexto_actual, estadisticas):
             estadisticas[contexto_actual]["errores_estilo"].append(mensaje_error)
 
     funcion_actual = estadisticas[contexto_actual]["funciones"][-1]
-    match_var_rota = re.match(variable_sin_punto_coma, linea_limpia)
-    
-    if match_var_rota:
-        estadisticas[contexto_actual]["total_variables"] += 1
-        mensaje_error = f"Error en '{funcion_actual}': Falta ';' en la linea '{linea_limpia}'"
-        estadisticas[contexto_actual]["errores_sintaxis"].append(mensaje_error)
-    elif re.match(retorno_sin_punto_coma, linea_limpia):
-        mensaje_error = f"Error en '{funcion_actual}': Falta ';' en la linea '{linea_limpia}'"
-        estadisticas[contexto_actual]["errores_sintaxis"].append(mensaje_error)
+
+    tiene_if_while = re.search(keyword_control, linea_limpia)
+    if tiene_if_while:
+        if not re.search(estructura_control, linea_limpia):
+            mensaje_error = f"Error en '{funcion_actual}': Estructura de control mal formada en la línea '{linea_limpia}'"
+            estadisticas[contexto_actual]["errores_sintaxis"].append(mensaje_error)
+    else:
+        match_var_rota = re.match(variable_sin_punto_coma, linea_limpia)
+        if match_var_rota:
+            estadisticas[contexto_actual]["total_variables"] += 1
+            mensaje_error = f"Error en '{funcion_actual}': Falta ';' en la línea '{linea_limpia}'"
+            estadisticas[contexto_actual]["errores_sintaxis"].append(mensaje_error)
+        elif re.match(retorno_sin_punto_coma, linea_limpia):
+            mensaje_error = f"Error en '{funcion_actual}': Falta ';' en la línea '{linea_limpia}'"
+            estadisticas[contexto_actual]["errores_sintaxis"].append(mensaje_error)
 def procesar_archivo():
     '''
     ***
