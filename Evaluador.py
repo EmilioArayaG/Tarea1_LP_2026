@@ -13,9 +13,9 @@ caracter = rf"'{letra}'"
 valor = rf"(?:{digito}+|{booleano}|{cadena_texto}|{caracter})"
 tipo_dato = r"(?:int|bool|char|string|void)"
 
-snake_case = rf"{letra_min}+(?:_{letra_min}+)*"
+snake_case = rf"{letra_min}+(?:_{letra_min}+)+"
 camelCase = rf"{letra_min}+(?:{letra_may}+{letra_min}+)+"
-PascalCase = rf"(?:{letra_may}+{letra_min}*)+"
+PascalCase = rf"(?:{letra_may}+{letra_min}+)+"
 nombre_valido = rf"(?:{snake_case}|{camelCase}|{PascalCase})"
 
 nombre_generico = rf"(?:{letra}|{digito}|_)+"
@@ -23,7 +23,8 @@ nombre_generico = rf"(?:{letra}|{digito}|_)+"
 condicion = rf"(?:\(\s*{nombre_valido}\s*{operacion}\s*{valor}\s*\))"
 estructura_control = rf"(?:(?:if|while)\s+{condicion}\s*\{{)"
 cierre_bloque = r"\}"
-detector_funcion = rf"(?:{tipo_dato})\s+({nombre_generico})\s*\("
+detector_funcion = rf"(?:{tipo_dato})\s+({nombre_valido})\s*\("
+detector_funcion_desconocido = rf"(?:{tipo_dato})\s+({nombre_generico})\s*\("
 declaracion_variable = rf"(?:{tipo_dato})\s+({nombre_valido})\s*(?:{operacion})\s*(?:{valor})\s*;"
 retorno = rf"(?:\s*return\s+{nombre_valido}\s*;)"
 comentario_one_line = rf"//\s*{palabra}"
@@ -119,10 +120,10 @@ def evaluar_linea_interna(linea_limpia, contexto_actual, estadisticas):
     
     if match_var_rota:
         estadisticas[contexto_actual]["total_variables"] += 1
-        mensaje_error = f"Error en '{funcion_actual}': Falta ';' en la linea {linea_limpia}"
+        mensaje_error = f"Error en '{funcion_actual}': Falta ';' en la linea '{linea_limpia}'"
         estadisticas[contexto_actual]["errores_sintaxis"].append(mensaje_error)
     elif re.match(retorno_sin_punto_coma, linea_limpia):
-        mensaje_error = f"Error en '{funcion_actual}': Falta ';' en la linea {linea_limpia}"
+        mensaje_error = f"Error en '{funcion_actual}': Falta ';' en la linea '{linea_limpia}'"
         estadisticas[contexto_actual]["errores_sintaxis"].append(mensaje_error)
 def procesar_archivo():
     '''
@@ -147,6 +148,8 @@ def procesar_archivo():
                 continue
 
             match_funcion = re.search(detector_funcion, linea_limpia)
+            if not match_funcion:
+                match_funcion = re.search(detector_funcion_desconocido, linea_limpia)
             
             if match_funcion:
                 if contexto_actual is not None and contador_llaves > 0:
@@ -193,23 +196,23 @@ def imprimir_reporte(estadisticas):
     for autor in orden_autores:
         datos = estadisticas[autor]
         if len(datos["funciones"]) > 0:
-            print(f"\nPracticante: {autor.capitalize()}")
+            print(f"\nPRACTICANTE: {autor.capitalize()}")
             cant_funciones = len(datos["funciones"])
             nombres_funciones = ", ".join(datos["funciones"])
-            print(f"Funciones creadas: {cant_funciones} ({nombres_funciones})")
-            print(f"Variables declaradas: {datos['total_variables']}")
+            print(f"- Funciones creadas: {cant_funciones} ({nombres_funciones})")
+            print(f"- Variables declaradas: {datos['total_variables']}")
 
             cant_estilos = len(datos["errores_estilo"])
             if cant_estilos > 0:
                 errores_str = ", ".join(datos["errores_estilo"])
-                print(f"Diferencias de estilo: {cant_estilos} ({errores_str})")
+                print(f"- Diferencias de estilo: {cant_estilos} ({errores_str})")
             else:
-                print(f"Diferencias de estilo: {cant_estilos}")
+                print(f"- Diferencias de estilo: {cant_estilos}")
             
             cant_sintaxis = len(datos["errores_sintaxis"])
-            print(f"Errores de sintaxis: {cant_sintaxis}")
+            print(f"- Errores de sintaxis: {cant_sintaxis}")
 
             for error in datos["errores_sintaxis"]:
-                print(error)
+                print(f"- {error}")
 
 procesar_archivo()
