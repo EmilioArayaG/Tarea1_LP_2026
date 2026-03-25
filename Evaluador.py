@@ -15,7 +15,7 @@ tipo_dato = r"(?:int|bool|char|string|void)"
 
 snake_case = rf"{letra_min}+(?:_{letra_min}+)+"
 camelCase = rf"{letra_min}+(?:{letra_may}+{letra_min}+)+"
-PascalCase = rf"(?:{letra_may}+{letra_min}*)+"
+PascalCase = rf"(?:{letra_may}+{letra_min}+)+"
 nombre_valido = rf"(?:{snake_case}|{camelCase}|{PascalCase})"
 
 nombre_generico = rf"(?:{letra}|{digito}|_)+"
@@ -37,7 +37,7 @@ retorno_sin_punto_coma = rf"^\s*return\s+(?:{nombre_valido})\s*$"
 def determinar_autor(nombre_funcion):
     '''
     ***
-    Parametro: nombre_funcion: str que contiene el nombre de la funcion
+    Parametro: nombre_funcion: str 
     ***
     Retorno: str
     ***
@@ -139,11 +139,12 @@ def evaluar_linea_interna(linea_limpia, contexto_actual, estadisticas):
 def procesar_archivo():
     '''
     ***
-    Parametro: None
+    Parametro 1 : None
     ***
     Retorno: None
     ***
-    Esta funcion lee el archivo programa.txt linea por linea, detecta las funciones, acumula las lineas de cada bloque de funcion y las escribe en el archivo correspondiente.
+    Lee el archivo programa.txt linea por linea, detecta las funciones, acumula 
+    las lineas y maneja el contador de llaves.
     '''
     estadisticas = incializar_archivos()
 
@@ -152,10 +153,13 @@ def procesar_archivo():
     contador_llaves = 0
 
     with open('programa.txt', 'r', encoding='utf-8') as archivo:
-        for linea in archivo: 
+        for linea in archivo:
             linea_limpia = linea.strip()
 
             if not linea_limpia:
+                continue
+
+            if re.search(comentario_one_line, linea_limpia) or re.search(comentario_multi_line, linea_limpia):
                 continue
 
             match_funcion = re.search(detector_funcion, linea_limpia)
@@ -172,15 +176,19 @@ def procesar_archivo():
                 nombre = match_funcion.group(1)
                 contexto_actual = determinar_autor(nombre).lower()
                 estadisticas[contexto_actual]["funciones"].append(nombre)
-                
+
                 bloque_actual = [linea]
-                contador_llaves = linea_limpia.count('{') - linea_limpia.count('}')
                 
+                linea_sin_strings = re.sub(cadena_texto, '""', linea_limpia)
+                contador_llaves = linea_sin_strings.count('{') - linea_sin_strings.count('}')
+
             elif contexto_actual:
                 bloque_actual.append(linea)
                 evaluar_linea_interna(linea_limpia, contexto_actual, estadisticas)
-                contador_llaves += linea_limpia.count('{') - linea_limpia.count('}')
                 
+                linea_sin_strings = re.sub(cadena_texto, '""', linea_limpia)
+                contador_llaves += linea_sin_strings.count('{') - linea_sin_strings.count('}')
+
                 if contador_llaves == 0:
                     escribir_bloque(contexto_actual, bloque_actual)
                     bloque_actual = []
@@ -191,6 +199,7 @@ def procesar_archivo():
         mensaje = f"Error en '{funcion_anterior}': Bloque sin cerrar. Faltan {contador_llaves} llaves '}}' de cierre."
         estadisticas[contexto_actual]["errores_sintaxis"].append(mensaje)
         escribir_bloque(contexto_actual, bloque_actual)
+
     imprimir_reporte(estadisticas)
 
 def imprimir_reporte(estadisticas):
@@ -200,7 +209,7 @@ def imprimir_reporte(estadisticas):
     ***
     Retorno: None
     ***
-    Esta funcion se encarga de imprimir el reporte final con las estadisticas obtenidas del archivo
+    Esta funcion se encarga de imprimir el reporte final con las estadisticas obtenidas del archivo.
     '''
     print("\n=== REPORTE DE EVALUACIÓN DE PRACTICANTES ===")
     orden_autores = ["snake", "camel", "pascal", "desconocido"]
