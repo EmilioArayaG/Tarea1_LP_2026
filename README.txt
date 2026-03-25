@@ -17,4 +17,13 @@ Instrucciones de uso para el .py:
 -Una consideracion importante es que el programa se probo en todo momento usando la WSL de Ubuntu, es decir un entorno de Linux, se recomienda usar este para
  el programa.
 
+Resultados y terminal:
+-El programa al ejecutarse entregara en terminal las estadisticas por funcion, con la cantidad de variables declaradas, errores de sintaxis, diferencias de estilo, todo esto lo hace por cada estilo
+ aparte genera archivos distintos segun cada estilo, con sus respectivos nombres en .txt
+
+Consideraciones importantes! : 
+El programa se hizo en base a el ebnf entregado siguiendo por completo este, de forma que hay varios casos en los que se hicieron asumsiones segun lo entregado.
+
+1- Estilo de nombres de variables: Segun el ebnf entregado, los distintos casos nombres de funciones snake_case, camelCase y PascalCase se construyen con letra_min y letra_may, por lo que cualquier funcion o variable escrita con
+   algun digito [0-9] no sera valida un ejemplo de esto podria ser int hola1 = 1; esto el programa lo ignora
 
