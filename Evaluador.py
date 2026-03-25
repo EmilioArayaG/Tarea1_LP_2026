@@ -15,19 +15,20 @@ tipo_dato = r"(?:int|bool|char|string|void)"
 
 snake_case = rf"{letra_min}+(?:_{letra_min}+)+"
 camelCase = rf"{letra_min}+(?:{letra_may}+{letra_min}+)+"
-PascalCase = rf"(?:{letra_may}+{letra_min}+)+"
+PascalCase = rf"(?:{letra_may}+{letra_min}*)+"
 nombre_valido = rf"(?:{snake_case}|{camelCase}|{PascalCase})"
 
 nombre_generico = rf"(?:{letra}|{digito}|_)+"
 
 condicion = rf"(?:\(\s*{nombre_valido}\s*{operacion}\s*{valor}\s*\))"
-estructura_control = rf"(?:(?:if|while)\s+{condicion}\s*\{{)"
+estructura_control = rf"(?:(?:if|while)\s*{condicion}\s*\{{)"
 cierre_bloque = r"\}"
 declaracion_funcion = rf"(?:{tipo_dato})\s+(?:{nombre_valido})\s*\("
 declaracion_variable = rf"(?:{tipo_dato})\s+({nombre_valido})\s*(?:{operacion})\s*(?:{valor})\s*;"
 retorno = rf"(?:\s*return\s+{nombre_valido}\s*;)"
 comentario_one_line = rf"//\s*{palabra}"
 comentario_multi_line = rf"/\*\s*{palabra}\s*\*/"
+
 
 detector_funcion = rf"(?:{tipo_dato})\s+({nombre_valido})\s*\("
 detector_funcion_desconocido = rf"(?:{tipo_dato})\s+({nombre_generico})\s*\("
@@ -143,8 +144,8 @@ def procesar_archivo():
     ***
     Retorno: None
     ***
-    Lee el archivo programa.txt linea por linea, detecta las funciones, acumula 
-    las lineas y maneja el contador de llaves.
+    Lee el archivo programa.txt linea por linea, limpia los comentarios, detecta 
+    las funciones, acumula las lineas y maneja el contador de llaves.
     '''
     estadisticas = incializar_archivos()
 
@@ -159,7 +160,10 @@ def procesar_archivo():
             if not linea_limpia:
                 continue
 
-            if re.search(comentario_one_line, linea_limpia) or re.search(comentario_multi_line, linea_limpia):
+            linea_limpia = re.sub(comentario_one_line, '', linea_limpia).strip()
+            linea_limpia = re.sub(comentario_multi_line, '', linea_limpia).strip()
+            
+            if not linea_limpia:
                 continue
 
             match_funcion = re.search(detector_funcion, linea_limpia)
@@ -179,14 +183,14 @@ def procesar_archivo():
 
                 bloque_actual = [linea]
                 
-                linea_sin_strings = re.sub(cadena_texto, '""', linea_limpia)
+                linea_sin_strings = re.sub(r'"[^"]*"', '""', linea_limpia)
                 contador_llaves = linea_sin_strings.count('{') - linea_sin_strings.count('}')
 
             elif contexto_actual:
                 bloque_actual.append(linea)
                 evaluar_linea_interna(linea_limpia, contexto_actual, estadisticas)
                 
-                linea_sin_strings = re.sub(cadena_texto, '""', linea_limpia)
+                linea_sin_strings = re.sub(r'"[^"]*"', '""', linea_limpia)
                 contador_llaves += linea_sin_strings.count('{') - linea_sin_strings.count('}')
 
                 if contador_llaves == 0:
@@ -219,18 +223,18 @@ def imprimir_reporte(estadisticas):
             print(f"\nPRACTICANTE: {autor.capitalize()}")
             cant_funciones = len(datos["funciones"])
             nombres_funciones = ", ".join(datos["funciones"])
-            print(f"- Funciones creadas: {cant_funciones} ({nombres_funciones})")
-            print(f"- Variables declaradas: {datos['total_variables']}")
+            print(f"Funciones creadas: {cant_funciones} ({nombres_funciones})")
+            print(f"Variables declaradas: {datos['total_variables']}")
 
             cant_estilos = len(datos["errores_estilo"])
             if cant_estilos > 0:
                 errores_str = ", ".join(datos["errores_estilo"])
-                print(f"- Diferencias de estilo: {cant_estilos} ({errores_str})")
+                print(f"Diferencias de estilo: {cant_estilos} ({errores_str})")
             else:
-                print(f"- Diferencias de estilo: {cant_estilos}")
+                print(f"Diferencias de estilo: {cant_estilos}")
             
             cant_sintaxis = len(datos["errores_sintaxis"])
-            print(f"- Errores de sintaxis: {cant_sintaxis}")
+            print(f"Errores de sintaxis: {cant_sintaxis}")
 
             for error in datos["errores_sintaxis"]:
                 print(f"- {error}")
