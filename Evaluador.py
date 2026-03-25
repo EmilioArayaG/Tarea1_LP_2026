@@ -229,12 +229,12 @@ def imprimir_reporte(estadisticas):
             cant_estilos = len(datos["errores_estilo"])
             if cant_estilos > 0:
                 errores_str = ", ".join(datos["errores_estilo"])
-                print(f"Diferencias de estilo: {cant_estilos} ({errores_str})")
+                print(f"Diferencias de Estilo: {cant_estilos} ({errores_str})")
             else:
-                print(f"Diferencias de estilo: {cant_estilos}")
+                print(f"Diferencias de Estilo: {cant_estilos}")
             
             cant_sintaxis = len(datos["errores_sintaxis"])
-            print(f"Errores de sintaxis: {cant_sintaxis}")
+            print(f"Errores de Sintaxis: {cant_sintaxis}")
 
             for error in datos["errores_sintaxis"]:
                 print(f"- {error}")
