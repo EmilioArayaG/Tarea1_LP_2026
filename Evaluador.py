@@ -103,8 +103,9 @@ def evaluar_linea_interna(linea_limpia, contexto_actual, estadisticas):
     Esta funcion se encarga de extraer toda la informacion necesaria de la linea que se le entrega, nombres de funciones, variables, errores de sintaxis y mas.
     Va almacenando toda la informacion en las estadisticas. 
     '''
+    
+    dic_estilos = {"snake": "snake_case", "camel": "camelCase", "pascal": "PascalCase"}
     funcion_act = estadisticas[contexto_actual]["funciones"][-1]
-
     m_estricto = re.match(declaracion_variable, linea_limpia)
     m_broad = re.match(detec_var, linea_limpia)
     m_rota = re.match(var_sin_pc, linea_limpia)
@@ -115,19 +116,14 @@ def evaluar_linea_interna(linea_limpia, contexto_actual, estadisticas):
         estadisticas[contexto_actual]["total_variables"] += 1
         estilo_var = determinar_autor(nombre_var).lower()
         if estilo_var != contexto_actual:
-            if contexto_actual == "snake": estilo_imp = "snake_case"
-            elif contexto_actual == "camel": estilo_imp = "camelCase"
-            elif contexto_actual == "pascal": estilo_imp = "PascalCase"
-            else: estilo_imp = "desconocido"
+            estilo_imp = dic_estilos.get(contexto_actual, "desconocido")
             mensj_err = f"La variable '{nombre_var}' no es {estilo_imp}"
             estadisticas[contexto_actual]["errores_estilo"].append(mensj_err)
 
     elif m_broad and contexto_actual != "desconocido":
         nombre_var = m_broad.group(1)
         estadisticas[contexto_actual]["total_variables"] += 1
-        if contexto_actual == "snake": estilo_imp = "snake_case"
-        elif contexto_actual == "camel": estilo_imp = "camelCase"
-        elif contexto_actual == "pascal": estilo_imp = "PascalCase"
+        estilo_imp = dic_estilos.get(contexto_actual, "desconocido")
         mensj_err = f"La variable '{nombre_var}' no es {estilo_imp}"
         estadisticas[contexto_actual]["errores_estilo"].append(mensj_err)
 
@@ -139,10 +135,7 @@ def evaluar_linea_interna(linea_limpia, contexto_actual, estadisticas):
         estadisticas[contexto_actual]["total_variables"] += 1
         estilo_var = determinar_autor(nombre_var).lower()
         if estilo_var != contexto_actual:
-            if contexto_actual == "snake": estilo_imp = "snake_case"
-            elif contexto_actual == "camel": estilo_imp = "camelCase"
-            elif contexto_actual == "pascal": estilo_imp = "PascalCase"
-            else: estilo_imp = "desconocido"
+            estilo_imp = dic_estilos.get(contexto_actual, "desconocido")
             mensj_est = f"La variable '{nombre_var}' no es {estilo_imp}"
             estadisticas[contexto_actual]["errores_estilo"].append(mensj_est)
         mensj_err = f"Error en '{funcion_act}': Falta ';' en la línea '{linea_limpia}'"
@@ -151,9 +144,7 @@ def evaluar_linea_interna(linea_limpia, contexto_actual, estadisticas):
     elif m_rota_broad and contexto_actual != "desconocido":
         nombre_var = m_rota_broad.group(1)
         estadisticas[contexto_actual]["total_variables"] += 1
-        if contexto_actual == "snake": estilo_imp = "snake_case"
-        elif contexto_actual == "camel": estilo_imp = "camelCase"
-        elif contexto_actual == "pascal": estilo_imp = "PascalCase"
+        estilo_imp = dic_estilos.get(contexto_actual, "desconocido")
         mensj_est = f"La variable '{nombre_var}' no es {estilo_imp}"
         estadisticas[contexto_actual]["errores_estilo"].append(mensj_est)
         mensj_err = f"Error en '{funcion_act}': Falta ';' en la línea '{linea_limpia}'"
