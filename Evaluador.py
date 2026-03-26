@@ -21,7 +21,7 @@ nombre_valido = rf"(?:{snake_case}|{camelCase}|{PascalCase})"
 nombre_generico = rf"(?:{letra}|{digito}|_)+"
 
 condicion = rf"(?:\(\s*{nombre_valido}\s*{operacion}\s*{valor}\s*\))"
-estructura_control = rf"(?:(?:if|while)\s*{condicion}\s*\{{)"
+estructura_control = rf"(?:(?:if|while)\s+{condicion}\s*\{{)"
 cierre_bloque = r"\}"
 declaracion_funcion = rf"(?:{tipo_dato})\s+({nombre_valido})\s*\("
 declaracion_variable = rf"(?:{tipo_dato})\s+({nombre_valido})\s*(?:{operacion})\s*(?:{valor})\s*;"
@@ -36,6 +36,7 @@ retorno_sin_punto_coma = rf"^\s*return\s+(?:{nombre_valido})\s*$"
 radar_declaracion_variable = rf"(?:{tipo_dato})\s+({nombre_generico})\s*(?:{operacion})\s*(?:{valor})\s*;"
 radar_variable_sin_punto_coma = rf"^(?:{tipo_dato})\s+({nombre_generico})\s*(?:{operacion})\s*(?:{valor})\s*$"
 radar_retorno_sin_punto_coma = rf"^\s*return\s+(?:{nombre_generico})\s*$"
+radar_intento_control = r"^\s*(?:if|while)(?:\s|\()"
 
 def determinar_autor(nombre_funcion):
     '''
@@ -176,6 +177,10 @@ def evaluar_linea_interna(linea_limpia, contexto_actual, estadisticas):
     elif re.match(estructura_control, linea_limpia):
         pass
 
+    elif re.match(radar_intento_control, linea_limpia):
+        mensaje_error = f"Error en '{funcion_actual}': Estructura de control mal formada en la línea '{linea_limpia}'"
+        estadisticas[contexto_actual]["errores_sintaxis"].append(mensaje_error)
+
 def procesar_archivo():
     '''
     ***
@@ -277,3 +282,4 @@ def imprimir_reporte(estadisticas):
                 print(f"- {error}")
 
 procesar_archivo()
+
